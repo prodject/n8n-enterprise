@@ -3,23 +3,21 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "5678:5678"
-      
+    # ports:
+    #   - "5678:5678"
+
     environment:
-      - N8N_HOST=${N8N_HOST}
-      - N8N_PROTOCOL=${N8N_PROTOCOL}
-      - N8N_EDITOR_BASE_URL=${N8N_EDITOR_BASE_URL}
-      - WEBHOOK_URL=${WEBHOOK_URL}
-      - N8N_TRUST_PROXY=true
-      
       - NODE_ENV=production
-      # - N8N_HOST=localhost
       - N8N_PORT=5678
-      # - N8N_PROTOCOL=http
-      # - WEBHOOK_URL=http://localhost:5678/
       - N8N_USER_FOLDER=/home/nodeuser/.n8n
 
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+      - N8N_EDITOR_BASE_URL=${N8N_EDITOR_BASE_URL:-http://localhost:5678}
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:5678/}
+      - N8N_TRUST_PROXY=true
+
+      # DB
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres
       - DB_POSTGRESDB_PORT=5432
@@ -27,18 +25,19 @@ services:
       - DB_POSTGRESDB_USER=n8n
       - DB_POSTGRESDB_PASSWORD=n8n
 
-      # Очень желательно в проде:
-      #- N8N_ENCRYPTION_KEY=change_me_to_a_long_random_string
+      # Очень желательно (задать в Coolify Secrets/Env)
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-}
+
     volumes:
       - n8n_user_data:/home/nodeuser/.n8n
-      # Скан работы
+
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:5678/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 60s
-      
+
     depends_on:
       - postgres
 
@@ -56,6 +55,7 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
+
 volumes:
   n8n_user_data:
   pg_data:
